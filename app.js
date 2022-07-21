@@ -17,6 +17,7 @@ const pool = mysql.createPool({
 });
 
 app.get("/todos/:id/:contentId", async (req, res) => {
+  // params 여러개 받기
   const data = {
     todos: {
       id: req.params.id,
