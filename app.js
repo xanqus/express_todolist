@@ -16,6 +16,21 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+app.get("/todos/:id/:contentId", async (req, res) => {
+  const data = {
+    todos: {
+      id: req.params.id,
+      contentId: req.params.contentId,
+    },
+  };
+
+  const {
+    todos: { id, contentId },
+  } = data;
+
+  console.log("id", id);
+});
+
 app.get("/todos", async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM todo ORDER BY id DESC");
   res.json(rows);
