@@ -19,6 +19,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
 const getData = async () => {
   const data = await axios.get("http://localhost:3000/todos");
   console.log("async await", data);
@@ -98,6 +99,34 @@ app.patch("/todos/:id", async (req, res) => {
 
   res.json({
     msg: `${id}번 할일이 수정되었습니다.`,
+  });
+});
+
+app.delete("/todos/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const [[todoRow]] = await pool.query(
+    `
+    SELECT *
+    FROM todo
+    WHERE id = ?`,
+    [id]
+  );
+
+  if (todoRow === undefined) {
+    res.status(404).json({
+      msg: "not found",
+    });
+    return;
+  }
+
+  const [rs] = await pool.query(
+    `DELETE FROM todo
+    WHERE id = ?`,
+    [id]
+  );
+  res.json({
+    msg: `${id}번 할일이 삭제되었습니다.`,
   });
 });
 
