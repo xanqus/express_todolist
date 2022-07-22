@@ -1,8 +1,11 @@
 // app.js
 import express from "express";
 import mysql from "mysql2/promise";
+import cors from "cors";
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 const port = 3000;
