@@ -1,8 +1,12 @@
 // app.js
 import express from "express";
 import mysql from "mysql2/promise";
+import cors from "cors";
+import axios from "axios";
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 const port = 3000;
@@ -15,6 +19,11 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+
+const getData = async () => {
+  const data = await axios.get("http://localhost:3000/todos");
+  console.log("async await", data);
+};
 
 app.get("/todos/:id/:contentId", async (req, res) => {
   // params 여러개 받기
@@ -34,6 +43,8 @@ app.get("/todos/:id/:contentId", async (req, res) => {
 
 app.get("/todos", async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM todo ORDER BY id DESC");
+
+  getData();
   res.json(rows);
 });
 
@@ -104,6 +115,34 @@ app.patch("/todos/:id", async (req, res) => {
 
   res.json({
     msg: `${id}번 할일이 수정되었습니다.`,
+  });
+});
+
+app.delete("/todos/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const [[todoRow]] = await pool.query(
+    `
+    SELECT *
+    FROM todo
+    WHERE id = ?`,
+    [id]
+  );
+
+  if (todoRow === undefined) {
+    res.status(404).json({
+      msg: "not found",
+    });
+    return;
+  }
+
+  const [rs] = await pool.query(
+    `DELETE FROM todo
+    WHERE id = ?`,
+    [id]
+  );
+  res.json({
+    msg: `${id}번 할일이 삭제되었습니다.`,
   });
 });
 
