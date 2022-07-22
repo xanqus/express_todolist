@@ -2,6 +2,7 @@
 import express from "express";
 import mysql from "mysql2/promise";
 import cors from "cors";
+import axios from "axios";
 
 const app = express();
 
@@ -18,9 +19,15 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+const getData = async () => {
+  const data = await axios.get("http://localhost:3000/todos");
+  console.log("async await", data);
+};
 
 app.get("/todos", async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM todo ORDER BY id DESC");
+
+  getData();
   res.json(rows);
 });
 
