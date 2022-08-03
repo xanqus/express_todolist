@@ -1,5 +1,5 @@
 // app.js
-import express from 'express'
+import express, { query } from 'express'
 import mysql from 'mysql2/promise'
 import cors from 'cors'
 import axios from 'axios'
@@ -139,6 +139,33 @@ app.patch('/todos/:id', async (req, res) => {
   res.json({
     msg: `${id}번 할일이 수정되었습니다.`,
   })
+})
+
+app.patch('/todos/check/:id', async (req, res) => {
+  const { id } = req.params
+  const [[rows]] = await pool.query(
+    `
+    SELECT *
+  FROM todo where id = ?
+  `,
+    [id]
+  )
+  if (!rows) {
+    res.status(404).json({
+      msg: 'not found',
+    })
+    return
+  }
+  await pool.query(
+    `
+  UPDATE todo
+  SET checked = ?
+  WHERE id = ?
+  `,
+
+    [!rows.checked, id]
+  )
+  res.send(id)
 })
 
 app.delete('/todos/:id', async (req, res) => {
