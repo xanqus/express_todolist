@@ -22,7 +22,6 @@ const pool = mysql.createPool({
 
 const getData = async () => {
   const data = await axios.get('http://localhost:3000/todos')
-  console.log('async await', data)
 }
 
 app.get('/todos/:id/:contentId', async (req, res) => {
@@ -37,14 +36,11 @@ app.get('/todos/:id/:contentId', async (req, res) => {
   const {
     todos: { id, contentId },
   } = data
-
-  console.log('id', id)
 })
 
 app.get('/todos', async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM todo ORDER BY id DESC')
   //getData()
-  console.log(rows)
   res.json(rows)
 })
 
@@ -95,7 +91,7 @@ app.get('/todos/:id/', async (req, res) => {
 
 app.patch('/todos/:id', async (req, res) => {
   const { id } = req.params
-  const { perform_date, content } = req.body
+  const { perform_date, text } = req.body
 
   const [rows] = await pool.query(
     `
@@ -119,9 +115,9 @@ app.patch('/todos/:id', async (req, res) => {
     return
   }
 
-  if (!content) {
+  if (!text) {
     res.status(400).json({
-      msg: 'content required',
+      msg: 'text required',
     })
     return
   }
@@ -130,10 +126,10 @@ app.patch('/todos/:id', async (req, res) => {
     `
     UPDATE todo
     SET perform_date = ?,
-    content = ?
+    text = ?
     WHERE id = ?
     `,
-    [perform_date, content, id]
+    [perform_date, text, id]
   )
 
   res.json({
