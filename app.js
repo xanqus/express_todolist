@@ -3,13 +3,18 @@ import express from "express";
 import mysql from "mysql2/promise";
 import cors from "cors";
 import axios from "axios";
+import path from "path";
+const __dirname = path.resolve();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const port = 3000;
+app.set("view engine", "pug");
+app.set("views", "./views");
+
+const port = 4000;
 const pool = mysql.createPool({
   host: "localhost",
   user: "sbsst",
@@ -24,6 +29,11 @@ const getData = async () => {
   const data = await axios.get("http://localhost:3000/todos");
   console.log("async await", data);
 };
+
+app.get("/", (req, res) => {
+  //res.sendFile(__dirname + "/views/template.html");
+  res.render("template.pug", { title: "PUG : EXPRESS TEMPLATE ENGINE" });
+});
 
 app.get("/todos/:id/:contentId", async (req, res) => {
   // params 여러개 받기
@@ -44,7 +54,7 @@ app.get("/todos/:id/:contentId", async (req, res) => {
 app.get("/todos", async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM todo ORDER BY id DESC");
 
-  getData();
+  //getData();
   res.json(rows);
 });
 
@@ -116,6 +126,44 @@ app.patch("/todos/:id", async (req, res) => {
   res.json({
     msg: `${id}번 할일이 수정되었습니다.`,
   });
+});
+
+app.patch("/todos/check/:id", async (req, res) => {
+  const { id } = req.params;
+  const [[todoRow]] = await pool.query(
+    `
+    SELECT *
+    FROM todo
+    WHERE id = ?
+    `,
+    [id]
+  );
+  if (!todoRow) {
+    res.status(404).json({
+      msg: "not found",
+    });
+    return;
+  }
+
+  await pool.query(
+    `
+    UPDATE todo
+    SET checked = ?
+    WHERE id = ?
+    `,
+    [!todoRow.checked, id]
+  );
+
+  const [updatedTodos] = await pool.query(
+    `
+  SELECT *
+  FROM todo
+  ORDER BY id DESC
+  `,
+    [id]
+  );
+
+  res.json(updatedTodos);
 });
 
 app.delete("/todos/:id", async (req, res) => {
