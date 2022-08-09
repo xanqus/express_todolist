@@ -64,7 +64,13 @@ app.post("/todos", async (req, res) => {
   ORDER BY id
   DESC LIMIT 1
   `);
-  res.json(rows);
+  const [updatedTodos] = await pool.query(`
+  SELECT *
+  FROM todo
+  ORDER BY id
+  DESC
+  `);
+  res.json(updatedTodos);
 });
 
 app.get("/todos/:id/", async (req, res) => {
@@ -132,9 +138,14 @@ app.patch("/todos/:id", async (req, res) => {
     [perform_date, text, id]
   );
 
-  res.json({
-    msg: `${id}번 할일이 수정되었습니다.`,
-  });
+  const [updatedTodos] = await pool.query(
+    `
+    SELECT *
+    FROM todo
+    ORDER BY id DESC
+    `
+  );
+  res.json(updatedTodos);
 });
 
 app.patch("/todos/check/:id", async (req, res) => {
@@ -161,7 +172,14 @@ app.patch("/todos/check/:id", async (req, res) => {
 
     [!rows.checked, id]
   );
-  res.send(id);
+  const [updatedTodos] = await pool.query(
+    `
+    SELECT *
+    FROM todo
+    ORDER BY id DESC
+    `
+  );
+  res.json(updatedTodos);
 });
 
 app.patch("/todos/swap/:id", async (req, res) => {
