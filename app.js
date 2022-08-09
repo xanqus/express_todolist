@@ -50,26 +50,22 @@ app.post("/todos", async (req, res) => {
   } = req;
   await pool.query(
     `
-  INSERT INTO todo
-  SET reg_date = NOW(),
-  perform_date = '2022-05-18 07:00:00',
-  checked = 0,
-  text = ?;
-  `,
+    INSERT INTO todo
+    SET reg_date = NOW(),
+    perform_date = '2022-08-09 12:12:12',
+    checked = 0,
+    text = ?
+    `,
     [text]
   );
-  const [[rows]] = await pool.query(`
-  SELECT *
-  FROM todo
-  ORDER BY id
-  DESC LIMIT 1
-  `);
-  const [updatedTodos] = await pool.query(`
-  SELECT *
-  FROM todo
-  ORDER BY id
-  DESC
-  `);
+  const [updatedTodos] = await pool.query(
+    `
+    SELECT *
+    FROM todo
+    ORDER BY id DESC
+    `
+  );
+
   res.json(updatedTodos);
 });
 
@@ -77,7 +73,7 @@ app.get("/todos/:id/", async (req, res) => {
   //const id = req.params.id;
   const { id } = req.params;
 
-  const [rows] = await pool.query(
+  const [[todo]] = await pool.query(
     `
   SELECT *
   FROM todo
@@ -85,14 +81,13 @@ app.get("/todos/:id/", async (req, res) => {
   `,
     [id]
   );
-  if (rows.length === 0) {
+  if (!todo) {
     res.status(404).json({
       msg: "not found",
     });
     return;
   }
-
-  res.json(rows[0]);
+  res.json(todo);
 });
 
 app.patch("/todos/:id", async (req, res) => {
