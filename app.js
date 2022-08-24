@@ -24,6 +24,34 @@ const getData = async () => {
   const data = await axios.get("http://localhost:3000/todos");
 };
 
+app.post("/login", async (req, res) => {
+  const { user_id, password } = req.body;
+  console.log(req.body);
+
+  const [[user]] = await pool.query(
+    `
+  SELECT *
+  FROM \`user\`
+  where user_id = ?
+  `,
+    [user_id]
+  );
+
+  console.log("user", user);
+  if (!user) {
+    return res
+      .status(401)
+      .json({ authenticated: false, msg: "일치하는 회원이 없습니다." });
+  }
+  if (user.password != password) {
+    return res
+      .status(401)
+      .json({ authenticated: false, msg: "비밀번호가 일치하지 않습니다." });
+  } else {
+    return res.status(200).json({ authenticated: true, msg: "로그인됨" });
+  }
+});
+
 app.get("/todos/:id/:contentId", async (req, res) => {
   // params 여러개 받기
   const data = {
