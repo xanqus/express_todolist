@@ -3,11 +3,17 @@ import express, { query } from "express";
 import mysql from "mysql2/promise";
 import cors from "cors";
 import axios from "axios";
+import fileUpload from "express-fileupload";
+import path from "path";
+import fs from "fs";
+const __dirname = path.resolve();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
+app.use(express.static("public"));
 
 const port = 4000;
 const pool = mysql.createPool({
@@ -23,6 +29,37 @@ const pool = mysql.createPool({
 const getData = async () => {
   const data = await axios.get("http://localhost:3000/todos");
 };
+
+app.get("/uploadFiles", async (req, res) => {
+  const [imgSrcs] = await pool.query(
+    `
+    SELECT *
+    FROM img_table
+    `
+  );
+  res.json(imgSrcs);
+});
+
+app.post("/upload", async (req, res) => {
+  let uploadFile = req.files.img;
+  const fileName = req.files.img.name;
+  uploadFile.mv(`${__dirname}/public/files/${fileName}`, async (err) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    const imgSrc = `http://localhost:4000/files/${fileName}`;
+    await pool.query(
+      `
+      INSERT INTO img_table (imgSrc)
+      VALUES (?);
+      `,
+      [imgSrc]
+    );
+
+    res.send("등록됨");
+  });
+});
 
 app.post("/login", async (req, res) => {
   const { user_id, password } = req.body;
